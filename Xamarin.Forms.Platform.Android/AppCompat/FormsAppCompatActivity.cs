@@ -14,6 +14,7 @@ using Android.Util;
 using Android.Views;
 using Android.Widget;
 using Xamarin.Forms.Platform.Android.AppCompat;
+using Xamarin.Forms.PlatformConfiguration.AndroidSpecific;
 using AToolbar = Android.Support.V7.Widget.Toolbar;
 using AColor = Android.Graphics.Color;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
@@ -167,7 +168,7 @@ namespace Xamarin.Forms.Platform.Android
 
 			SetSupportActionBar(bar);
 
-			Window.SetSoftInputMode(SoftInput.AdjustPan);
+			SetSoftInputMode();
 
 			_layout = new ARelativeLayout(BaseContext);
 			SetContentView(_layout);
@@ -306,6 +307,8 @@ namespace Xamarin.Forms.Platform.Android
 		{
 			if (args.PropertyName == "MainPage")
 				InternalSetPage(_application.MainPage);
+			if (args.PropertyName == PlatformConfiguration.AndroidSpecific.Application.WindowSoftInputModeAdjustProperty.PropertyName)
+				SetSoftInputMode();
 		}
 
 		void CheckForAppLink(Intent intent)
@@ -439,6 +442,34 @@ namespace Xamarin.Forms.Platform.Android
 		void SetMainPage()
 		{
 			InternalSetPage(_application.MainPage);
+		}
+
+		void SetSoftInputMode()
+		{
+			SoftInput adjust = SoftInput.AdjustPan;
+
+			if (Xamarin.Forms.Application.Current == null)
+			{
+				Window.SetSoftInputMode(adjust);
+				return;
+			}
+
+			var elementValue = Xamarin.Forms.Application.Current.OnThisPlatform().GetWindowSoftInputModeAdjust();
+			switch (elementValue)
+			{
+				default:
+				case WindowSoftInputModeAdjust.Pan:
+					adjust = SoftInput.AdjustPan;
+					break;
+				case WindowSoftInputModeAdjust.Resize:
+					adjust = SoftInput.AdjustResize;
+					break;
+				case WindowSoftInputModeAdjust.Unspecified:
+					adjust = SoftInput.AdjustUnspecified;
+					break;
+			}
+
+			Window.SetSoftInputMode(adjust);
 		}
 
 		void UpdateProgressBarVisibility(bool isBusy)
