@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Collections.Generic;
 using Xamarin.Forms.Internals;
+using System.Diagnostics;
 #if __UNIFIED__
 using UIKit;
 #else
@@ -42,7 +43,14 @@ namespace Xamarin.Forms.Platform.iOS
 			set
 			{
 				base.SelectedViewController = value;
+
 				UpdateCurrentPage();
+
+				if (value.GetType() == typeof(UINavigationController))
+				{
+					//((SelectedViewController as UINavigationController).PresentedViewController as UITableView).Source
+				}
+
 			}
 		}
 
@@ -230,18 +238,23 @@ namespace Xamarin.Forms.Platform.iOS
 			e.Apply((o, i, c) => SetupPage((Page)o, i), (o, i) => TeardownPage((Page)o, i), Reset);
 
 			SetControllers();
-
+			Debug.WriteLine($"***** {ViewControllers} *****");
 			UIViewController controller = null;
 			if (Tabbed.CurrentPage != null)
 				controller = GetViewController(Tabbed.CurrentPage);
 			if (controller != null && controller != base.SelectedViewController)
+			{
+				Debug.WriteLine($"***** {controller} ******");
 				base.SelectedViewController = controller;
+			}
 		}
 
 		void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(TabbedPage.CurrentPage))
 			{
+				Debug.WriteLine("***** Page changed *****");
+
 				var current = Tabbed.CurrentPage;
 				if (current == null)
 					return;
@@ -249,7 +262,7 @@ namespace Xamarin.Forms.Platform.iOS
 				var controller = GetViewController(current);
 				if (controller == null)
 					return;
-
+				Debug.WriteLine($"***** {controller} *****");
 				SelectedViewController = controller;
 			}
 			else if (e.PropertyName == TabbedPage.BarBackgroundColorProperty.PropertyName)
