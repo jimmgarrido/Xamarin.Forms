@@ -11,6 +11,7 @@ using Android.Support.Design.Widget;
 using Android.Support.V4.App;
 using Android.Support.V4.View;
 using Android.Views;
+using Xamarin.Forms.Internals;
 
 namespace Xamarin.Forms.Platform.Android.AppCompat
 {
@@ -166,19 +167,16 @@ namespace Xamarin.Forms.Platform.Android.AppCompat
 					pager.Id = FormsAppCompatActivity.GetUniqueId();
 					pager.AddOnPageChangeListener(this);
 
-					tabs.SetupWithViewPager(pager);
-					UpdateTabIcons();
-					tabs.SetOnTabSelectedListener(this);
-
 					AddView(pager);
 					AddView(tabs);
+
+					OnChildrenCollectionChanged(null, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 				}
 
 				TabbedPage tabbedPage = e.NewElement;
 				if (tabbedPage.CurrentPage != null)
 					ScrollToCurrentPage();
 
-				UpdateIgnoreContainerAreas();
 				((IPageController)tabbedPage).InternalChildren.CollectionChanged += OnChildrenCollectionChanged;
 				UpdateBarBackgroundColor();
 				UpdateBarTextColor();
@@ -190,7 +188,7 @@ namespace Xamarin.Forms.Platform.Android.AppCompat
 			base.OnElementPropertyChanged(sender, e);
 
 			if (e.PropertyName == nameof(TabbedPage.CurrentPage))
-				if(Element.CurrentPage != null)
+				if (Element.CurrentPage != null)
 					ScrollToCurrentPage();
 			else if (e.PropertyName == NavigationPage.BarBackgroundColorProperty.PropertyName)
 				UpdateBarBackgroundColor();
@@ -245,6 +243,8 @@ namespace Xamarin.Forms.Platform.Android.AppCompat
 
 		void OnChildrenCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
+			e.Apply((o, i, c) => SetupPage((Page)o, i), (o, i) => TeardownPage((Page)o, i), Reset);
+
 			FormsViewPager pager = _viewPager;
 			TabLayout tabs = _tabLayout;
 
@@ -261,6 +261,34 @@ namespace Xamarin.Forms.Platform.Android.AppCompat
 			}
 
 			UpdateIgnoreContainerAreas();
+		}
+
+		void TeardownPage(Page page, int i)
+		{
+			page.PropertyChanged -= OnPagePropertyChanged;
+		}
+
+		void SetupPage(Page page, int i)
+		{
+			page.PropertyChanged += OnPagePropertyChanged;
+		}
+
+		void Reset()
+		{
+			var i = 0;
+			foreach (var page in Element.Children)
+				SetupPage(page, i++);
+		}
+
+		private void OnPagePropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == Page.TitleProperty.PropertyName)
+			{
+				var page = (Page)sender;
+				var index = Element.Children.IndexOf(page);
+				TabLayout.Tab tab = _tabLayout.GetTabAt(index);
+				tab.SetText(page.Title);
+			}
 		}
 
 		void ScrollToCurrentPage()
