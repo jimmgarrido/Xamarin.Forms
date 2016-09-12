@@ -30,5 +30,18 @@ namespace Xamarin.Forms.Platform.Android.AppCompat
 		{
 			return EnableGesture && base.OnTouchEvent(e);
 		}
+
+        public override int CurrentItem
+        {
+            get
+            {
+                return base.CurrentItem;
+            }
+            set
+            {
+                Console.WriteLine("**** Setting CurrentItem ****");
+                base.CurrentItem = value;
+            }
+        }
 	}
 }

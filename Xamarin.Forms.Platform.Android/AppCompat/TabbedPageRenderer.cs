@@ -249,17 +249,20 @@ namespace Xamarin.Forms.Platform.Android.AppCompat
 			TabLayout tabs = _tabLayout;
 
 			((FormsFragmentPagerAdapter<Page>)pager.Adapter).CountOverride = Element.Children.Count;
-			pager.Adapter.NotifyDataSetChanged();
+			//((FormsFragmentPagerAdapter<Page>)pager.Adapter).NotifyDataSetChanged();
+			//pager.Adapter.NotifyDataSetChanged();
 
 			if (Element.Children.Count == 0)
-				tabs.RemoveAllTabs();
+            {
+                tabs.RemoveAllTabs();
+            }
 			else
 			{
 				tabs.SetupWithViewPager(pager);
 				UpdateTabIcons();
 				tabs.SetOnTabSelectedListener(this);
 			}
-
+			((FormsFragmentPagerAdapter<Page>)pager.Adapter).NotifyDataSetChanged();
 			UpdateIgnoreContainerAreas();
 		}
 
