@@ -54,7 +54,7 @@ namespace Xamarin.Forms.Platform.WinRT
 			base.OnApplyTemplate();
 
 #if WINDOWS_UWP
-			_contentPresenter = GetTemplateChild("ContentPresenter") as WContentPresenter;	
+			_contentPresenter = GetTemplateChild("ContentPresenter") as WContentPresenter;
 #else
 			_border = GetTemplateChild("Border") as Border;
 #endif
